@@ -34,6 +34,61 @@ module enigma(
     */
     //Do not modify above this line
 
+    wire [15:0] random;
+    wire [3:0] a, b;
+    wire [3:0] neg1, sbox1, xor_result, sbox2;
+
+    xorshift798 rng(
+        .clk(clk),
+        .reset(reset),
+        .seed({8'b0, seed}),
+        .random(random)
+    );
+
+    ones_comp_add add1(
+        .a(random[3:0]),
+        .b(random[7:4]),
+        .out(a)
+    );
+
+    ones_comp_add add2(
+        .a(random[11:8]),
+        .b(random[15:12]),
+        .out(b)
+    );
+
+    ones_comp_add add3(
+        .a(a),
+        .b(b),
+        .out(key)
+    );
+
+    negate n1(
+        .en(random[0]),
+        .in(in),
+        .out(neg1)
+    );
+
+    sbox sb1(
+        .en(random[1]),
+        .in(neg1),
+        .out(sbox1)
+    );
+
+    assign xor_result = sbox1 ^ key;
+
+    sbox sb2(
+        .en(random[1]),
+        .in(xor_result),
+        .out(sbox2)
+    );
+
+    negate n2(
+        .en(random[0]),
+        .in(sbox2),
+        .out(out)
+    );
+
 endmodule
 
 // Nancy
